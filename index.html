@@ -439,10 +439,10 @@
         <!-- Dual Song Audio Player -->
         <div class="music-player-card">
             <div class="playlist-selector">
-                <button class="track-btn active" id="btn-song1" onclick="switchTrack('audio/song1.mp3', 'btn-song1')">
+                <button class="track-btn active" id="btn-song1" onclick="switchTrack('/audio/song1.mp3', 'btn-song1')">
                     <i class="fa-solid fa-music"></i> Song 1 (Sad Track)
                 </button>
-                <button class="track-btn" id="btn-song2" onclick="switchTrack('audio/song2.mp3', 'btn-song2')">
+                <button class="track-btn" id="btn-song2" onclick="switchTrack('/audio/song2.mp3', 'btn-song2')">
                     <i class="fa-solid fa-headphones"></i> Song 2 (Acoustic)
                 </button>
             </div>
@@ -453,11 +453,11 @@
                     </div>
                     <div>
                         <p style="font-weight: 600; font-size: 0.88rem;" id="track-title">Sad Song Track 1</p>
-                        <span style="font-size: 0.75rem; color: var(--text-sub);">Custom Audio Path: <code>audio/song1.mp3</code> & <code>audio/song2.mp3</code></span>
+                        <span style="font-size: 0.75rem; color: var(--text-sub);">Custom Audio Path: <code>/audio/song1.mp3</code> & <code>/audio/song2.mp3</code></span>
                     </div>
                 </div>
                 <button class="play-toggle-btn" onclick="toggleAudio()"><i class="fa-solid fa-play" id="playIcon"></i></button>
-                <audio id="mainAudio" loop><source src="audio/song1.mp3" type="audio/mpeg"></audio>
+                <audio id="mainAudio" loop><source src="/audio/song1.mp3" type="audio/mpeg"></audio>
             </div>
         </div>
 
