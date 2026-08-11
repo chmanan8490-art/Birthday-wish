@@ -559,78 +559,27 @@
     </div>
 
    <!-- JavaScript & 3D Logic -->
+<!-- JavaScript & 3D Logic -->
     <script>
-        // Automatic Midnight Lock & Countdown Logic
-        function checkMidnightLock() {
-            const now = new Date();
-            const midnight = new Date();
-            
-            // Set target to tonight's 12:00 AM
-            midnight.setHours(24, 0, 0, 0); 
-
-            const diff = midnight - now;
-
-            // Agar 12:00 AM nahi baje (Timer active ha)
-            if (diff > 0) {
-                const overlay = document.getElementById('passcode-overlay');
-                overlay.style.display = 'flex';
-                overlay.style.opacity = '1';
-                
-                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24).toString().padStart(2, '0');
-                const mins = Math.floor((diff / (1000 * 60)) % 60).toString().padStart(2, '0');
-                const secs = Math.floor((diff / 1000) % 60).toString().padStart(2, '0');
-
-                // Lock screen display update
-                document.querySelector('.lock-card').innerHTML = `
-                    <i class="fa-solid fa-clock-stop" style="font-size: 3rem; color: var(--accent-rose); margin-bottom: 15px;"></i>
-                    <h2 style="color: #fff; font-family: 'Cinzel';">Surprise Unlocks At Midnight</h2>
-                    <p style="color: var(--text-sub); font-size: 0.9rem; margin: 10px 0 20px 0;">Please wait until exact 12:00 AM ✨</p>
-                    <div style="display: flex; justify-content: center; gap: 15px; font-size: 1.8rem; font-weight: bold; color: var(--accent-rose);">
-                        <div>${hours}<div style="font-size: 0.7rem; color: var(--text-sub);">HRS</div></div> :
-                        <div>${mins}<div style="font-size: 0.7rem; color: var(--text-sub);">MINS</div></div> :
-                        <div>${secs}<div style="font-size: 0.7rem; color: var(--text-sub);">SECS</div></div>
-                    </div>
-                `;
-
-                // Top Banner Timer Sync
-                document.getElementById('cd-hours').innerText = hours;
-                document.getElementById('cd-mins').innerText = mins;
-                document.getElementById('cd-secs').innerText = secs;
-            } 
-            // Exact 12:00 AM Par Auto Reveal
-            else {
-                const overlay = document.getElementById('passcode-overlay');
-                if (overlay.style.display !== 'none') {
-                    gsap.to(overlay, { 
-                        opacity: 0, 
-                        duration: 1, 
-                        onComplete: () => {
-                            overlay.style.display = 'none';
-                            triggerConfetti();
-                            typeWriter();
-                        }
-                    });
-                }
-            }
-        }
-
-        // Live check every second
-        setInterval(checkMidnightLock, 1000);
-
-        // Manual Passcode Override (Backup)
+        // Manual Passcode Protection (Default: 1200)
         function checkPasscode() {
             if (document.getElementById('passcode').value === '1200') {
-                gsap.to('#passcode-overlay', { opacity: 0, duration: 0.6, onComplete: () => {
-                    document.getElementById('passcode-overlay').style.display = 'none';
-                    typeWriter();
-                }});
+                gsap.to('#passcode-overlay', { 
+                    opacity: 0, 
+                    duration: 0.6, 
+                    onComplete: () => {
+                        document.getElementById('passcode-overlay').style.display = 'none';
+                        triggerConfetti();
+                        typeWriter();
+                    }
+                });
             } else {
                 document.getElementById('error-msg').style.display = 'block';
             }
         }
 
         // Typewriter Effect
-        const wishText = "Aaj raat ke 12 baj chuke hain, aur mera wada tha ke main sab se pehle tumhein wish karunga. Halanke humare darmiyan 10 din se mukammal khamoshi hai aur hum alag ho chuke hain, lekin mere dil ne tumhein wish kiye bina rehna munasib nahi samjha. Mene tumse be-inteha mohabbat ki thi Faria... Jinhe main pyar se 'Nisa' keh kar pukarta tha. Aaj tumhare is khas din par meri taraf se sirf khuloos aur duayein hain.";
+        const wishText = "Aaj 12 August 2026 ko raat ke 12 baj chuke hain, aur mera wada tha ke main sab se pehle tumhein wish karunga. Halanke humare darmiyan 10 din se mukammal khamoshi hai aur hum alag ho chuke hain, lekin mere dil ne tumhein wish kiye bina rehna munasib nahi samjha. Mene tumse be-inteha mohabbat ki thi Faria... Jinhe main pyar se 'Nisa' keh kar pukarta tha. Aaj tumhare is khas din par meri taraf se sirf khuloos aur duayein hain.";
         let index = 0;
         let isTypingStarted = false;
 
@@ -647,8 +596,6 @@
             }
             type();
         }
-
-        window.onload = checkMidnightLock;
 
         // GSAP Tab Switching Animations
         function switchTab(tabId) {
@@ -668,7 +615,7 @@
             audio.src = src;
             document.querySelectorAll('.track-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(btnId).classList.add('active');
-            document.getElementById('track-title').innerText = btnId === 'btn-song1' ? 'Sad Song Track 1' : 'Sad Song Track 2';
+            document.getElementById('track-title').innerText = btnId === 'btn-song1' ? 'Khasara OST Track 1' : 'Sad Song Track 2';
             audio.play();
             document.getElementById('playIcon').className = 'fa-solid fa-pause';
             document.querySelectorAll('.wave-bar').forEach(b => b.classList.add('active'));
