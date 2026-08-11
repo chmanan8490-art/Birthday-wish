@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Faria | Extreme 3D Experience</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- External Libraries (CDNs) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-deep: #030206;
+            --bg-card: rgba(15, 10, 22, 0.7);
+            --border-glow: rgba(225, 29, 72, 0.35);
+            --accent-crimson: #e11d48;
+            --accent-rose: #fda4af;
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* 3D WebGL Canvas */
+        #webgl-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Passcode Security Overlay */
+        #passcode-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(3, 2, 6, 0.96);
+            backdrop-filter: blur(30px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .lock-card {
+            background: var(--bg-card);
+            border: 1px solid var(--accent-crimson);
+            padding: 40px 30px;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 0 60px rgba(225, 29, 72, 0.25);
+        }
+
+        .pass-input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: var(--glass-border);
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            text-align: center;
+            font-size: 1.1rem;
+            letter-spacing: 4px;
+            margin: 20px 0 15px 0;
+            outline: none;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent-crimson), #be123c);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(225, 29, 72, 0.3);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(225, 29, 72, 0.5);
+        }
+
+        /* Main Layout Container */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px 15px 80px 15px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 20px 10px 20px;
+        }
+
+        .header-badge {
+            display: inline-block;
+            padding: 6px 18px;
+            background: rgba(225, 29, 72, 0.12);
+            border: 1px solid rgba(225, 29, 72, 0.3);
+            border-radius: 30px;
+            font-size: 0.85rem;
+            color: var(--accent-rose);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        h1.main-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2.2rem, 5vw, 3.8rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 30%, var(--accent-rose) 70%, var(--accent-crimson) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        /* Midnight Countdown Banner */
+        .countdown-banner {
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: 16px;
+            padding: 15px 25px;
+            max-width: 500px;
+            margin: 15px auto 25px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            backdrop-filter: blur(16px);
+        }
+
+        .time-box { text-align: center; }
+        .time-box span { display: block; font-size: 1.5rem; font-weight: 700; color: var(--accent-rose); }
+        .time-box label { font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; }
+
+        /* Multi-Song Dual Audio Player Bar */
+        .music-player-card {
+            margin: 0 auto 35px auto;
+            max-width: 580px;
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: 20px;
+            padding: 16px 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .playlist-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .track-btn {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-sub);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .track-btn.active {
+            background: rgba(225, 29, 72, 0.2);
+            border-color: var(--accent-crimson);
+            color: white;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .visualizer-waves {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 20px;
+        }
+
+        .wave-bar {
+            width: 3px;
+            height: 100%;
+            background: var(--accent-rose);
+            border-radius: 3px;
+            animation: quiet 0.5s ease-in-out infinite alternate;
+        }
+
+        .wave-bar.active { animation: wave 0.5s ease-in-out infinite alternate; }
+        @keyframes wave { 0% { height: 4px; } 100% { height: 22px; } }
+        @keyframes quiet { 0% { height: 4px; } 100% { height: 6px; } }
+
+        .play-toggle-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--accent-crimson);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 35px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: var(--glass-border);
+            padding: 12px 20px;
+            border-radius: 14px;
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(225, 29, 72, 0.3), rgba(159, 18, 57, 0.5));
+            border-color: rgba(225, 29, 72, 0.6);
+            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(225, 29, 72, 0.3);
+        }
+
+        /* Tab Content Screens */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .glass-card {
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        .typewriter-text {
+            color: var(--text-main);
+            font-size: 1.08rem;
+            line-height: 1.85;
+            min-height: 140px;
+            text-align: justify;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        /* Scratch Card */
+        .scratch-container {
+            max-width: 500px;
+            margin: 20px auto;
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            border: var(--glass-border);
+        }
+
+        .scratch-secret {
+            background: #0d0814;
+            padding: 50px 25px;
+            text-align: center;
+        }
+
+        .scratch-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        /* Card Grids */
+        .feelings-grid, .poetry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .feeling-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: var(--glass-border);
+            border-radius: 18px;
+            padding: 25px;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        .feeling-box:hover {
+            border-color: rgba(225, 29, 72, 0.4);
+            transform: translateY(-3px);
+        }
+
+        .feeling-box h3 {
+            color: var(--accent-rose);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feeling-box p {
+            color: var(--text-sub);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .poetry-card {
+            background: var(--bg-card);
+            border: var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .poetry-urdu {
+            font-family: 'Noto Nastaliq Urdu', serif;
+            font-size: 1.3rem;
+            line-height: 2.3;
+            color: #ffffff;
+            margin-bottom: 15px;
+            direction: rtl;
+        }
+
+        .poetry-roman {
+            font-style: italic;
+            color: var(--accent-rose);
+            font-size: 0.9rem;
+        }
+
+        .pdf-export-btn {
+            background: rgba(225, 29, 72, 0.2);
+            border: 1px solid var(--accent-crimson);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            float: right;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .app-container { padding: 15px 10px; }
+            .glass-card { padding: 25px 18px; }
+            .poetry-urdu { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D Three.js Background Canvas -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Passcode Security Overlay -->
+    <div id="passcode-overlay">
+        <div class="lock-card">
+            <i class="fa-solid fa-lock" style="font-size: 2.5rem; color: var(--accent-rose); margin-bottom: 15px;"></i>
+            <h2>Enter Passcode</h2>
+            <p style="color: var(--text-sub); font-size: 0.85rem; margin-top: 8px;">Private Space Protection (Default: 1200)</p>
+            <input type="password" id="passcode" class="pass-input" placeholder="••••" maxlength="4">
+            <button class="action-btn" onclick="checkPasscode()">Unlock Space</button>
+            <p id="error-msg" style="color: #ef4444; font-size: 0.85rem; margin-top: 10px; display: none;">Incorrect Passcode</p>
+        </div>
+    </div>
+
+    <div class="app-container">
+        
+        <header>
+            <div class="header-badge">Midnight Special</div>
+            <h1 class="main-title">Happy Birthday Faria</h1>
+        </header>
+
+        <!-- Countdown Banner -->
+        <div class="countdown-banner">
+            <div class="time-box"><span id="cd-hours">00</span><label>Hours</label></div>
+            <div class="time-box"><span id="cd-mins">00</span><label>Mins</label></div>
+            <div class="time-box"><span id="cd-secs">00</span><label>Secs</label></div>
+        </div>
+
+        <!-- Dual Song Audio Player -->
+        <div class="music-player-card">
+            <div class="playlist-selector">
+                <button class="track-btn active" id="btn-song1" onclick="switchTrack('audio/song1.mp3', 'btn-song1')">
+                    <i class="fa-solid fa-music"></i> Song 1 (Sad Track)
+                </button>
+                <button class="track-btn" id="btn-song2" onclick="switchTrack('audio/song2.mp3', 'btn-song2')">
+                    <i class="fa-solid fa-headphones"></i> Song 2 (Acoustic)
+                </button>
+            </div>
+            <div class="player-controls">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="visualizer-waves">
+                        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                    </div>
+                    <div>
+                        <p style="font-weight: 600; font-size: 0.88rem;" id="track-title">Sad Song Track 1</p>
+                        <span style="font-size: 0.75rem; color: var(--text-sub);">Custom Audio Path: <code>audio/song1.mp3</code> & <code>audio/song2.mp3</code></span>
+                    </div>
+                </div>
+                <button class="play-toggle-btn" onclick="toggleAudio()"><i class="fa-solid fa-play" id="playIcon"></i></button>
+                <audio id="mainAudio" loop><source src="audio/song1.mp3" type="audio/mpeg"></audio>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('wish')"><i class="fa-solid fa-wand-magic-sparkles"></i> Typewriter Wish</button>
+            <button class="tab-btn" onclick="switchTab('scratch')"><i class="fa-solid fa-gift"></i> Scratch Secret</button>
+            <button class="tab-btn" onclick="switchTab('feelings')"><i class="fa-solid fa-heart-crack"></i> Unspoken Feelings</button>
+            <button class="tab-btn" onclick="switchTab('story')"><i class="fa-solid fa-moon"></i> 10 Days Reality</button>
+            <button class="tab-btn" onclick="switchTab('poetry')"><i class="fa-solid fa-feather-pointed"></i> Deep Shayari</button>
+            <button class="tab-btn" onclick="switchTab('letter')"><i class="fa-solid fa-file-pdf"></i> PDF Letter</button>
+        </nav>
+
+        <!-- TAB 1: Wish -->
+        <section id="tab-wish" class="tab-content active">
+            <div class="glass-card">
+                <h2 style="font-family: 'Cinzel'; color: var(--accent-rose); margin-bottom: 15px;">Happy Birthday, Faria</h2>
+                <div class="typewriter-text" id="typewriter"></div>
+                <button class="action-btn" style="max-width: 200px; margin: 0 auto;" onclick="triggerConfetti()">Celebrate 12:00 AM ✨</button>
+            </div>
+        </section>
+
+        <!-- TAB 2: Scratch Card -->
+        <section id="tab-scratch" class="tab-content">
+            <div class="scratch-container">
+                <canvas id="scratchCanvas" class="scratch-canvas" width="500" height="250"></canvas>
+                <div class="scratch-secret">
+                    <h3 style="color: var(--accent-rose); margin-bottom: 12px;">Unspoken Truth Revealed</h3>
+                    <p style="color: var(--text-sub); font-size: 0.95rem; line-height: 1.6;">
+                        "Shayad main tumhare baare mein sab samajh kar bhi anjaan banna chahta tha, kyunki tumse judey rehna mere liye har sach se zyada zaroori tha... Lekin ab nahi."
+                    </p>
+                </div>
+            </div>
+            <p style="text-align: center; color: var(--text-sub); font-size: 0.85rem; margin-top: 10px;">Drag mouse/finger above to scratch the card!</p>
+        </section>
+
+        <!-- TAB 3: Unspoken Feelings -->
+        <section id="tab-feelings" class="tab-content">
+            <div class="feelings-grid">
+                <div class="feeling-box">
+                    <h3><i class="fa-solid fa-bookmark"></i> Jo Baatein Adhuri Reh Gayin</h3>
+                    <p>Kuch baatein aesi hoti hain jo insaan chahte hue bhi kabhi lafzon mein bayaan nahi kar pata. Main hamesha tumhari har baat par aitbaar karta raha, kyunki mere liye rishte ki bunyaad sirf aur sirf sachai thi.</p>
+                </div>
+                <div class="feeling-box">
+                    <h3><i class="fa-solid fa-cloud-moon"></i> Khamosh Ehsaas</h3>
+                    <p>Mene tumse behad shiddat se mohabbat ki thi. Tum mere liye koi aam shaks nahi thin, lekin shayad meri chahat ki shiddat tumhare liye itni ahem nahi thi jitni mere liye thi.</p>
+                </div>
+                <div class="feeling-box">
+                    <h3><i class="fa-solid fa-shield-halved"></i> Izzat Aur Distancing</h3>
+                    <p>Door hone ka faisla nafrat ki waja se nahi tha, balki apni khud-daari aur us sache pyar ki izzat ke liye tha jo mene sirf tumse kiya tha.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: 10 Days Reality -->
+        <section id="tab-story" class="tab-content">
+            <div class="feelings-grid">
+                <div class="feeling-box">
+                    <h3><i class="fa-solid fa-dumbbell"></i> Gym Routine Broken</h3>
+                    <p>Gym jana aur apni health ki fikr sab khatam ho chuki hai. Sara din be-dili aur udaasi mein guzar jata hai. or ghr mei kisi se zyada bat nhi..krta ab akela side pr rehta hun Ahmed bhi ki call ain thin pochta rehta or kehta pershan na ho ye wo mama ny use btaya tha ke ab buht badal gya ha chup chup rehta ha ata ha khana khata ha nmaz perh ker laptop le kr beth jata ha to ahmed bhai ny buht samjaya muje but use mei kesy btaon ke first time love hwa tha muje jo ke galti thi meri andha yakeen tha mera.</p>
+                </div>
+                <div class="feeling-box">
+                    <h3><i class="fa-solid fa-bed"></i> Sleepless Nights (3 AM - 4 AM)</h3>
+                    <p>Bed par 3 bje jane ke baad bhi neend 4 bje ke baad bari mushkil se aati hai. Yaadein soney nahi detin. pori rat laptop le kr betha rehta hun songs sunta rehta hun bs or jab 3 baj jai to late jata hun but neend nhi ati overthinking ki wja se.</p>
+                </div>
+                <div class="feeling-box">
+                    <h3><i class="fa-solid fa-headphones"></i> Songs Loop</h3>
+                    <p>Sara din earphone laga kar dukhi gane sunte hue guzar jata hai. Har lafz dil par lagta hai. na kisi se office mei bat krta hun na kuch chup kr ke phirta rehta hun. kuch samj nhi ati kia krun kia na krun mei.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: Deep Shayari -->
+        <section id="tab-poetry" class="tab-content">
+            <div class="poetry-grid">
+                <div class="poetry-card">
+                    <div class="poetry-urdu">محبت تو دونوں نے کی تھی نا؟<br>پھر صرف مجھے ہی نیند کیوں نہیں آتی؟</div>
+                    <div class="poetry-roman">"Mohabbat to dono ne ki thi na?<br>Phir sirf mujhe hi neend kyun nahi ati?"</div>
+                </div>
+                <div class="poetry-card">
+                    <div class="poetry-urdu">ہم تو سمجھے تھے کہ صرف ہمارے ہیں وہ،<br>بڑے نادان تھے جو ان کے جھوٹ کو بھی سچ سمجھ بیٹھے۔</div>
+                    <div class="poetry-roman">"Hum to samjhe the ke sirf humare hain woh,<br>Bade nadaan the jo un ke jhoot ko bhi sach samajh baithe."</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 6: Printable Letter -->
+        <section id="tab-letter" class="tab-content">
+            <button class="pdf-export-btn" onclick="exportPDF()"><i class="fa-solid fa-download"></i> Save as PDF</button>
+            <div class="glass-card" id="printableLetter" style="text-align: left;">
+                <h2 style="font-family: 'Cinzel'; color: var(--accent-rose); margin-bottom: 20px;">To: Faria</h2>
+                <p style="color: var(--text-sub); line-height: 1.85; margin-bottom: 15px; text-align: justify;">
+                    Faria, mene tumse sachhi aur be-inteha mohabbat ki thi. Tum mere liye koi aam larki nahi thin, mene tumhein apni zindagi ka sab se ahem hissa banaya tha. Lekin jab muje pata chala ke tum mere hotay hue bhi doosre larkon se baatein karti ho,i know mei janta hun tumhein muhabat mery se hi thi but ye bat kable kabol nhi thi jo tum kr rhi thi agr hum larky karein to hum bewafa kehlaty but agr larki krey to uska kia tume id ke bary emi start mei jhot bola tha kehti th ike kisi maqsad se bani thi ye wo but buht kuch galat ho rha tha ander jab meri id dost ke pass open thi to mei ny sach bol dia tha tum ne start mei muje kuch kha bad mei kuch kha ke larki id ha wo use kr rhi thi but tum jhot pr jhot bolti gai or ab bhi nhi man rhi or larki wali chats bana rhi khud per se ilzam hta rhi dekho agr tumny koi explainantion krni ho to muje bta dena mei ab bhi tumhein jhota sabit kr sakta hun bcz tumhari explaination ke bad jo swal mei krun ga uska jwab tumharey pass nhi hoga pehly bhi aesa hwa jab mei pochta tha is se bat ki is se ki tum btati nhi thi bs ye kehti thi ke mei ny sirf tum se pyar kia but btati nhi thi kash tum mery sath aesa na krti kash kia mila tumehin ye sab kr ke meri life ujar di mei yha jo type kr rha hun tumehin andaza bhi nhi hoga mera kia hal ho ga is time bhi mei kesy likh rha hun ye sab tumehin idea bhi nhi hoga mery ye 10 din kesy guzrey tum ny to soch bhi lia hoga ke ye to kamina insan ha iske pass to or aa gai hongi but kher allah tumhein hidayat de muje tum se koi gila nhi faria tum ny to muje ahsas dilaya ke koi kisi eik ka ban kr nhi rehta log tumhein hasil kr ke bhi behter ki talash mei hoty kher insan ki apni apni fitrat ha agr koi explaination ho to muje bta dena mei aj bhi tumhein sabit krny ke lye ready hun ok...  Mene tumhein chora kyunki main tumhein kisi aur ke sath share nahi kar sakta tha. Aj 10 din ho gaye hain humare breakup ko. Gym chor diya, gane sun kar din kat'ta hai, aur raat 3 bje se pehle neend nahi ati. Ye mera aakhri paigham hai tumhare liye. Khush raho apni zindagi mein. Happy Birthday, Faria.
+                </p>
+                <div style="text-align: right; margin-top: 30px; font-family: 'Cinzel'; color: var(--accent-rose);">— Someone who loved you unconditionally</div>
+            </div>
+        </section>
+
+    </div>
+
+   <!-- JavaScript & 3D Logic -->
+    <script>
+        // Automatic Midnight Lock & Countdown Logic
+        function checkMidnightLock() {
+            const now = new Date();
+            const midnight = new Date();
+            
+            // Set target to tonight's 12:00 AM
+            midnight.setHours(24, 0, 0, 0); 
+
+            const diff = midnight - now;
+
+            // Agar 12:00 AM nahi baje (Timer active ha)
+            if (diff > 0) {
+                const overlay = document.getElementById('passcode-overlay');
+                overlay.style.display = 'flex';
+                overlay.style.opacity = '1';
+                
+                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24).toString().padStart(2, '0');
+                const mins = Math.floor((diff / (1000 * 60)) % 60).toString().padStart(2, '0');
+                const secs = Math.floor((diff / 1000) % 60).toString().padStart(2, '0');
+
+                // Lock screen display update
+                document.querySelector('.lock-card').innerHTML = `
+                    <i class="fa-solid fa-clock-stop" style="font-size: 3rem; color: var(--accent-rose); margin-bottom: 15px;"></i>
+                    <h2 style="color: #fff; font-family: 'Cinzel';">Surprise Unlocks At Midnight</h2>
+                    <p style="color: var(--text-sub); font-size: 0.9rem; margin: 10px 0 20px 0;">Please wait until exact 12:00 AM ✨</p>
+                    <div style="display: flex; justify-content: center; gap: 15px; font-size: 1.8rem; font-weight: bold; color: var(--accent-rose);">
+                        <div>${hours}<div style="font-size: 0.7rem; color: var(--text-sub);">HRS</div></div> :
+                        <div>${mins}<div style="font-size: 0.7rem; color: var(--text-sub);">MINS</div></div> :
+                        <div>${secs}<div style="font-size: 0.7rem; color: var(--text-sub);">SECS</div></div>
+                    </div>
+                `;
+
+                // Top Banner Timer Sync
+                document.getElementById('cd-hours').innerText = hours;
+                document.getElementById('cd-mins').innerText = mins;
+                document.getElementById('cd-secs').innerText = secs;
+            } 
+            // Exact 12:00 AM Par Auto Reveal
+            else {
+                const overlay = document.getElementById('passcode-overlay');
+                if (overlay.style.display !== 'none') {
+                    gsap.to(overlay, { 
+                        opacity: 0, 
+                        duration: 1, 
+                        onComplete: () => {
+                            overlay.style.display = 'none';
+                            triggerConfetti();
+                            typeWriter();
+                        }
+                    });
+                }
+            }
+        }
+
+        // Live check every second
+        setInterval(checkMidnightLock, 1000);
+
+        // Manual Passcode Override (Backup)
+        function checkPasscode() {
+            if (document.getElementById('passcode').value === '1200') {
+                gsap.to('#passcode-overlay', { opacity: 0, duration: 0.6, onComplete: () => {
+                    document.getElementById('passcode-overlay').style.display = 'none';
+                    typeWriter();
+                }});
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
+            }
+        }
+
+        // Typewriter Effect
+        const wishText = "Aaj raat ke 12 baj chuke hain, aur mera wada tha ke main sab se pehle tumhein wish karunga. Halanke humare darmiyan 10 din se mukammal khamoshi hai aur hum alag ho chuke hain, lekin mere dil ne tumhein wish kiye bina rehna munasib nahi samjha. Mene tumse be-inteha mohabbat ki thi Faria... Jinhe main pyar se 'Nisa' keh kar pukarta tha. Aaj tumhare is khas din par meri taraf se sirf khuloos aur duayein hain.";
+        let index = 0;
+        let isTypingStarted = false;
+
+        function typeWriter() {
+            if (isTypingStarted) return;
+            isTypingStarted = true;
+            
+            function type() {
+                if (index < wishText.length) {
+                    document.getElementById("typewriter").innerHTML += wishText.charAt(index);
+                    index++;
+                    setTimeout(type, 35);
+                }
+            }
+            type();
+        }
+
+        window.onload = checkMidnightLock;
+
+        // GSAP Tab Switching Animations
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            const target = document.getElementById('tab-' + tabId);
+            target.style.display = 'block';
+            event.currentTarget.classList.add('active');
+
+            gsap.fromTo(target, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" });
+        }
+
+        // Multi-Track Dual Audio Player
+        const audio = document.getElementById('mainAudio');
+        function switchTrack(src, btnId) {
+            audio.src = src;
+            document.querySelectorAll('.track-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(btnId).classList.add('active');
+            document.getElementById('track-title').innerText = btnId === 'btn-song1' ? 'Sad Song Track 1' : 'Sad Song Track 2';
+            audio.play();
+            document.getElementById('playIcon').className = 'fa-solid fa-pause';
+            document.querySelectorAll('.wave-bar').forEach(b => b.classList.add('active'));
+        }
+
+        function toggleAudio() {
+            const icon = document.getElementById('playIcon');
+            const bars = document.querySelectorAll('.wave-bar');
+            if (audio.paused) {
+                audio.play();
+                icon.className = 'fa-solid fa-pause';
+                bars.forEach(b => b.classList.add('active'));
+            } else {
+                audio.pause();
+                icon.className = 'fa-solid fa-play';
+                bars.forEach(b => b.classList.remove('active'));
+            }
+        }
+
+        // Scratch Card Logic
+        const scCanvas = document.getElementById('scratchCanvas');
+        const scCtx = scCanvas.getContext('2d');
+        scCtx.fillStyle = '#1c0f2b';
+        scCtx.fillRect(0, 0, scCanvas.width, scCanvas.height);
+        scCtx.font = '16px Plus Jakarta Sans'; scCtx.fillStyle = '#fda4af'; scCtx.textAlign = 'center';
+        scCtx.fillText('Scratch Here with Mouse / Touch', 250, 130);
+        let isDrawing = false;
+        scCanvas.addEventListener('mousedown', () => isDrawing = true);
+        scCanvas.addEventListener('mouseup', () => isDrawing = false);
+        scCanvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing) return;
+            const rect = scCanvas.getBoundingClientRect();
+            scCtx.globalCompositeOperation = 'destination-out';
+            scCtx.beginPath(); scCtx.arc(e.clientX - rect.left, e.clientY - rect.top, 20, 0, Math.PI * 2); scCtx.fill();
+        });
+
+        function triggerConfetti() { confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } }); }
+        function exportPDF() { html2pdf().from(document.getElementById('printableLetter')).save('Faria_Birthday_Letter.pdf'); }
+
+        /* THREE.JS 3D PARTICLE UNIVERSE */
+        const canvas3D = document.getElementById('webgl-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas3D, alpha: true, antialias: true });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const particleCount = 700;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount * 3; i++) {
+            positions[i] = (Math.random() - 0.5) * 12;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.025,
+            color: 0xe11d48,
+            transparent: true,
+            opacity: 0.6
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        camera.position.z = 3;
+
+        let mouseX = 0, mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth) - 0.5;
+            mouseY = (e.clientY / window.innerHeight) - 0.5;
+        });
+
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+            particles.rotation.y += 0.001;
+            particles.rotation.x += 0.0005;
+
+            particles.rotation.y += mouseX * 0.005;
+            particles.rotation.x += mouseY * 0.005;
+
+            renderer.render(scene, camera);
+        }
+        animate3D();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
